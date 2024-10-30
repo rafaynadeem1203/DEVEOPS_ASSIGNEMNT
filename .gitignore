@@ -37,3 +37,4 @@ docker-compose.yml
 
 # Ignore secrets directory
 secrets/
+.vscode

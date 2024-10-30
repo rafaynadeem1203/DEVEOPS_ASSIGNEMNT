@@ -23,14 +23,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Ignore environment files
-backend/.env
-backend/.env copy.example
 
-# Ignore Dockerfiles if not needed in the repo
-backend/Dockerfile
-frontend/Dockerfile
-frontend/Dockerfile.production
 
 # Ignore docker-compose file
 docker-compose.yml

@@ -1,0 +1,69 @@
+
+services:
+  database:
+    image: mongo
+    container_name: database
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/mongodb_username
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongodb_password
+    networks:
+      - MERN-APP
+    volumes:
+      - mongo_data:/data/db
+    secrets:
+      - mongodb_username
+      - mongodb_password
+
+  backend:
+    build:
+      context: backend/
+      dockerfile: Dockerfile
+    container_name: backend
+    env_file:
+      - backend/.env
+    ports:
+      - "4000:4000"
+    networks:
+      - MERN-APP
+    command: [ "npm","run","start" ]
+
+  frontend:
+    build:
+      context: frontend/
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+      - backend
+    networks:
+      - MERN-APP
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: [ "npm","run","start" ]
+
+  seed:
+    image: curlimages/curl:7.73.0
+    container_name: seeder
+    command: ["curl", "-X", "GET", "http://backend:4000/api/seed"]
+    depends_on:
+      - backend
+    networks:
+      - MERN-APP
+
+volumes:
+  mongo_data:
+
+networks:
+  MERN-APP:
+    driver: bridge
+
+secrets:
+  mongodb_username:
+    file: ./secrets/mongodb_username.txt
+  mongodb_password:
+    file: ./secrets/mongodb_password.txt

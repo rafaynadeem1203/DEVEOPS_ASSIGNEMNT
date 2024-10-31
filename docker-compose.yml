@@ -21,21 +21,28 @@ services:
       context: backend/
       dockerfile: Dockerfile
     container_name: backend
+    image: rafaynadeem1203/mern-backend:1.0
     env_file:
       - backend/.env
     ports:
       - "4000:4000"
     networks:
       - MERN-APP
-    command: [ "npm","run","start" ]
+    command: [ "npm","start"]
+    healthcheck:
+      test: ["CMD", "nc", "-z", "backend","4000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   frontend:
     build:
       context: frontend/
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.production
     container_name: frontend
+    image: rafaynadeem1203/mern-frontend:1.0
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - database
       - backend
@@ -44,14 +51,16 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: [ "npm","run","start" ]
+    command: ["nginx", "-g", "daemon off;"]
 
   seed:
-    image: curlimages/curl:7.73.0
+    image: rafaynadeem1203/mern-seeder:1.0
     container_name: seeder
-    command: ["curl", "-X", "GET", "http://backend:4000/api/seed"]
+    entrypoint: >
+      /bin/sh -c "until curl -X GET http://backend:4000/api/seed; do echo 'Waiting for backend...'; sleep 5; done"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - MERN-APP
 

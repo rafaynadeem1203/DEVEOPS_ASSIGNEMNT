@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t mydockerhubuser/frontend:${{ github.sha }} -f frontend/Dockerfile .
+          docker build -t rafaynadeem1203/frontend:${{ github.sha }} -f frontend/Dockerfile .
 
       - name: Push Docker Image
         env:
@@ -37,7 +37,7 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
-          docker push mydockerhubuser/frontend:${{ github.sha }}
+          docker push rafaynadeem1203/frontend:${{ github.sha }}
 
   build-be:
     name: Build Backend
@@ -59,7 +59,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t mydockerhubuser/backend:${{ github.sha }} -f backend/Dockerfile .
+          docker build -t rafaynadeem1203/backend:${{ github.sha }} -f backend/Dockerfile .
 
       - name: Push Docker Image
         env:
@@ -67,7 +67,7 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
-          docker push mydockerhubuser/backend:${{ github.sha }}
+          docker push rafaynadeem1203/backend:${{ github.sha }}
 
   test:
     name: Run Tests

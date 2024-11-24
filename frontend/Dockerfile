@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package*.json .
 RUN npm install
 COPY . .
-RUN npm build
+RUN npm run build
 
 FROM node:23-alpine AS prod
 WORKDIR /app

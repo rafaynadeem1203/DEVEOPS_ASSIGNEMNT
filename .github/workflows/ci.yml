@@ -1,0 +1,121 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-fe:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build Docker Image
+        run: |
+          docker build -t mydockerhubuser/frontend:${{ github.sha }} -f frontend/Dockerfile .
+
+      - name: Push Docker Image
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
+          docker push mydockerhubuser/frontend:${{ github.sha }}
+
+  build-be:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: backend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('backend/package-lock.json') }}
+
+      - name: Install Dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Build Docker Image
+        run: |
+          docker build -t mydockerhubuser/backend:${{ github.sha }} -f backend/Dockerfile .
+
+      - name: Push Docker Image
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USER --password-stdin
+          docker push mydockerhubuser/backend:${{ github.sha }}
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Run Unit Tests
+        run: |
+          cd backend
+          npm test -- --json --outputFile=test-report.json
+
+      - name: Publish Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: backend/test-report.json
+
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Run Linter
+        run: |
+          cd frontend
+          npm run lint
+
+  sast:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run SAST
+        run: |
+          docker run --rm -v $(pwd):/src aquasec/trivy fs /src

@@ -1,0 +1,22 @@
+backend:
+  name: backend
+  image: rafaynadeem1203/mern-backend:1.0
+  replicas: 1
+
+frontend:
+  name: frontend
+  image: rafaynadeem1203/mern-frontend:3.2
+  replicas: 1
+
+seeder:
+  enabled: true
+  image: rafaynadeem1203/mern-seeder:1.0
+
+
+database:
+  name: mern-app
+  username: root
+  password: example
+
+ingress:
+  host: mern-app.local

@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  NODE_ENV: production
+  DATABASE_URL: mongodb://mongo:27017/{{ .Values.database.name }}
+
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  API_URL: "http://mern-app-backend:4000/api"
+
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-configmap
+data:
+  PAYPAL_CLIENT_ID: ""
+  CLOUDINARY_CLOUD_NAME: ""
+  CLOUDINARY_API_KEY: ""
+  GOOGLE_API_KEY: ""
+  MAILGUN_DOMIAN: ""
+  MAILGUN_API_KEY: ""

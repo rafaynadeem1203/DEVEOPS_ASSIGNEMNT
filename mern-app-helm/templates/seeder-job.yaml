@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-seeder
+  labels:
+    app: {{ .Release.Name }}-seeder
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-seeder
+    spec:
+      containers:
+      - name: seeder
+        image: rafaynadeem1203/mern-seeder:1.0
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            until curl -X GET http://{{ .Release.Name }}-backend:4000/api/seed;
+            do
+              echo "Waiting for backend...";
+              sleep 5;
+            done;
+        env:
+        - name: NODE_ENV
+          value: "production"
+      restartPolicy: Never

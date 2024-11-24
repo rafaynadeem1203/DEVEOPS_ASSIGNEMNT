@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+  labels:
+    app: {{ .Release.Name }}-backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-backend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-backend
+    spec:
+      containers:
+      - name: backend
+        image: {{ .Values.backend.image }}
+        ports:
+        - containerPort: 4000
+        command: ["npm","start"]
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: JWT_SECRET
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: MONGODB_URI
+        - name: PAYPAL_CLIENT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: backend-configmap
+              key: PAYPAL_CLIENT_ID
+        - name: CLOUDINARY_CLOUD_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: backend-configmap
+              key: CLOUDINARY_CLOUD_NAME
+        - name: CLOUDINARY_API_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: backend-configmap
+              key: CLOUDINARY_API_KEY
+        - name: CLOUDINARY_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: CLOUDINARY_URL
+        - name: CLOUDINARY_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: CLOUDINARY_API_SECRET
+        - name: GOOGLE_API_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: backend-configmap
+              key: GOOGLE_API_KEY
+        - name: MAILGUN_DOMIAN
+          valueFrom:
+            configMapKeyRef:
+              name: backend-configmap
+              key: MAILGUN_DOMIAN
+        - name: MAILGUN_API_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: backend-configmap
+              key: MAILGUN_API_KEY
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-frontend
+  labels:
+    app: {{ .Release.Name }}-frontend
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: {{ .Values.frontend.image }}
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: frontend-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"

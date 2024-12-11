@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-      target: PRODUCTION
+      target: production
     container_name: backend
     env_file:
       - backend/.env
@@ -73,9 +73,6 @@ services:
       - DD_VERSION=1.0.0
 
      
-  
-
-
 
   seed:
     image: rafaynadeem1203/mern-seeder:1.0
@@ -108,7 +105,6 @@ services:
       - "9125:8125/udp"
     networks:
       - MERN-APP
-
 
 volumes:
   mongo_data:

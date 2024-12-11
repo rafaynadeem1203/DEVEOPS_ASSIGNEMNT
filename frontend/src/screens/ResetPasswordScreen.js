@@ -8,6 +8,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Store } from '../Store';
 import { getError } from '../utils';
+import React from 'react';
 
 export default function ResetPasswordScreen() {
   const navigate = useNavigate();

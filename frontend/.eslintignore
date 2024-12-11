@@ -1,0 +1,17 @@
+# Build output
+/build/
+/dist/
+
+# Node modules
+/node_modules/
+
+# Static assets
+/public/
+
+# Test coverage
+/coverage/
+
+# Generated code
+
+# Environment files
+.env

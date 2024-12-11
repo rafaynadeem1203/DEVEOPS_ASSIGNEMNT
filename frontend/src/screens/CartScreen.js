@@ -1,3 +1,4 @@
+import React from 'react';
 import { useContext } from 'react';
 import { Store } from '../Store';
 import { Helmet } from 'react-helmet-async';

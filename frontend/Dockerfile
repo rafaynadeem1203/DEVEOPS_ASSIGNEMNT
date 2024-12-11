@@ -4,16 +4,11 @@ WORKDIR /app
 # Copy package.json and install dependencies
 COPY frontend/package*.json .
 RUN npm install
-
 COPY frontend/ .
-
-
 RUN npm run build
 
 FROM node:23-alpine AS prod
 WORKDIR /app
-
-
 COPY --from=builder /app/build ./
 COPY --from=builder /app/package*.json ./
 RUN npm install --only=production

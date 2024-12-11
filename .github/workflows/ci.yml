@@ -12,6 +12,7 @@ jobs:
   build-fe:
     name: Build Frontend
     runs-on: ubuntu-latest
+    needs: [lint]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -32,6 +33,7 @@ jobs:
   build-be:
     name: Build Backend
     runs-on: ubuntu-latest
+    need: [test]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -54,22 +56,13 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
-      - name: Install Dependencies
+      - name: Build Docker Image
         run: |
-          cd backend
-          npm install
-
-      - name: Run Unit Tests
+          docker build --target test -t app:test -f backend/Dockerfile .
+      - name: Run Tests and Save Report
         run: |
-          cd backend
-          npm test -- --json --outputFile=test-report.json
+          docker run --rm -v $(pwd)/backend/test-report.json:/app/test-report.json app:test
 
-      - name: Publish Test Results
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-report
-          path: backend/test-report.json
 
   lint:
     name: Lint Code
@@ -78,16 +71,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+            ${{ runner.os }}-node-modules-
+
       - name: Install Dependencies
         run: |
           cd frontend
-          npm install
+          npm ci
 
       - name: Run Linter
         run: |
           cd frontend
           npm run lint
-
   sast:
     name: Static Code Analysis
     runs-on: ubuntu-latest

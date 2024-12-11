@@ -2,10 +2,9 @@ FROM node:23-alpine AS builder
 WORKDIR /app
 
 # Copy package.json and install dependencies
-COPY package*.json ./
+COPY package*.json .
 RUN npm install
 
-# Copy all files and build
 COPY frontend/ .
 
 

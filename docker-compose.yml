@@ -1,4 +1,3 @@
-
 services:
   database:
     image: mongo
@@ -21,28 +20,36 @@ services:
       context: backend/
       dockerfile: Dockerfile
     container_name: backend
-    image: rafaynadeem1203/mern-backend:1.0
     env_file:
       - backend/.env
     ports:
       - "4000:4000"
     networks:
       - MERN-APP
-    command: [ "npm","start"]
+    command: [ "npm", "start" ]
     healthcheck:
-      test: ["CMD", "nc", "-z", "backend","4000"]
+      test: ["CMD", "nc", "-z", "backend", "4000"]
       interval: 10s
       timeout: 5s
       retries: 3
+    environment:
+      - DD_AGENT_HOST=datadog
+      - DD_PROFILING_ENABLED=true
+      - DD_TRACE_ENABLED=true
+      - DD_SERVICE=mern-backend
+      - DD_ENV=development
+      - DD_RUNTIME_METRICS_ENABLED=true
+      - DD_TRACE_ANALYTICS_ENABLED=true
+    depends_on:
+      - datadog
 
   frontend:
     build:
       context: frontend/
-      dockerfile: Dockerfile.production
+      dockerfile: Dockerfile
     container_name: frontend
-    image: rafaynadeem1203/mern-frontend:1.0
     ports:
-      - "3000:80"
+      - "3000:3000"
     depends_on:
       - database
       - backend
@@ -51,7 +58,23 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: ["nginx", "-g", "daemon off;"]
+    command: ["npm", start]
+    environment:
+      - PUBLIC_URL=https://1bbec7ef366fac.lhr.life
+      - HOST=0.0.0.0
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - DD_AGENT_HOST=datadog
+      - DD_TRACE_ENABLED=true # Enable tracing if you instrument frontend logs
+      - DATADOG_APPLICATION_ID=5f991c4b-8567-40d8-9290-b1393c74a049
+      - DATADOG_CLIENT_TOKEN=pub8300cf66c28d1ee86134a5f773449fc5
+      - DATADOG_ENV=development
+      - DD_SERVICE=mern-frontend
+      - DD_VERSION=1.0.0
+
+     
+  
+
+
 
   seed:
     image: rafaynadeem1203/mern-seeder:1.0
@@ -63,6 +86,28 @@ services:
         condition: service_healthy
     networks:
       - MERN-APP
+
+  datadog:
+    image: datadog/agent:latest
+    container_name: datadog
+    environment:
+      - DD_API_KEY=6c88e495122143b1927430d6d349783b
+      - DD_SITE=us5.datadoghq.com
+      - DD_LOGS_ENABLED=true
+      - DD_APM_ENABLED=true
+      - DD_NETWORK_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_TAGS=env:development,project:mern-app,team:devops,service:datadog-agent,version:1.0.0
+      - DD_PROFILING_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "9125:8125/udp"
+    networks:
+      - MERN-APP
+
 
 volumes:
   mongo_data:

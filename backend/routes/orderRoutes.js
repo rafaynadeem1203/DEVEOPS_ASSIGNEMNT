@@ -3,6 +3,10 @@ import expressAsyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
+import logger from '../logger.js'; 
+
+
+
 import { isAuth, isAdmin, mailgun, payOrderEmailTemplate } from '../utils.js';
 
 const orderRouter = express.Router();
@@ -12,15 +16,19 @@ orderRouter.get(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
+    logger.info('Fetching all orders');
     const orders = await Order.find().populate('user', 'name');
     res.send(orders);
+    logger.info(`Fetched ${orders.length} orders`);
   })
 );
+
 
 orderRouter.post(
   '/',
   isAuth,
   expressAsyncHandler(async (req, res) => {
+    logger.info('Creating a new order', { user: req.user._id });
     const newOrder = new Order({
       orderItems: req.body.orderItems.map((x) => ({ ...x, product: x._id })),
       shippingAddress: req.body.shippingAddress,
@@ -33,9 +41,11 @@ orderRouter.post(
     });
 
     const order = await newOrder.save();
+    logger.info('New order created', { orderId: order._id });
     res.status(201).send({ message: 'New Order Created', order });
   })
 );
+
 
 orderRouter.get(
   '/summary',
@@ -107,17 +117,21 @@ orderRouter.put(
   '/:id/deliver',
   isAuth,
   expressAsyncHandler(async (req, res) => {
+    logger.info('Marking order as delivered', { orderId: req.params.id });
     const order = await Order.findById(req.params.id);
     if (order) {
       order.isDelivered = true;
       order.deliveredAt = Date.now();
       await order.save();
+      logger.info('Order marked as delivered', { orderId: req.params.id });
       res.send({ message: 'Order Delivered' });
     } else {
+      logger.warn('Order not found', { orderId: req.params.id });
       res.status(404).send({ message: 'Order Not Found' });
     }
   })
 );
+
 
 orderRouter.put(
   '/:id/pay',
@@ -168,14 +182,18 @@ orderRouter.delete(
   isAuth,
   isAdmin,
   expressAsyncHandler(async (req, res) => {
+    logger.info('Deleting order', { orderId: req.params.id });
     const order = await Order.findById(req.params.id);
     if (order) {
       await order.remove();
+      logger.info('Order deleted', { orderId: req.params.id });
       res.send({ message: 'Order Deleted' });
     } else {
+      logger.warn('Order not found for deletion', { orderId: req.params.id });
       res.status(404).send({ message: 'Order Not Found' });
     }
   })
 );
+
 
 export default orderRouter;

@@ -33,7 +33,7 @@ jobs:
   build-be:
     name: Build Backend
     runs-on: ubuntu-latest
-    need: [test]
+    needs: [test]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3

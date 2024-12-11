@@ -1,15 +1,18 @@
-FROM node:23-alpine AS BASE
+# Base Stage
+FROM node:23-alpine AS base
 WORKDIR /app
 COPY backend/package*.json ./
 RUN npm install
 COPY backend/ .
 
-FROM BASE AS TEST
-RUN npm install
-CMD ["npm","run","test"]
+# Test Stage
+FROM base AS test
+RUN npm install --only=development
+CMD ["npm", "run", "test"]
 
-FROM node:23-alpine AS PRODUCTION
+# Production Stage
+FROM node:23-alpine AS production
 WORKDIR /app
-COPY --from=BASE /app/node_modules ./node_modules
-COPY --from=BASE /app ./
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app ./
 EXPOSE 4000

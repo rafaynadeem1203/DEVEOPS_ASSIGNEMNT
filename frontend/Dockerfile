@@ -1,7 +1,5 @@
 FROM node:23-alpine AS builder
 WORKDIR /app
-
-# Copy package.json and install dependencies
 COPY frontend/package*.json .
 RUN npm install
 COPY frontend/ .

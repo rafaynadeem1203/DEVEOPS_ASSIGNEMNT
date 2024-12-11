@@ -9,6 +9,31 @@ on:
       - master
 
 jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Cache Node Modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
+
+      - name: Install Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Linter
+        run: |
+          cd frontend
+          npm run lint
+
   build-fe:
     name: Build Frontend
     runs-on: ubuntu-latest
@@ -20,6 +45,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t rafaynadeem1203/frontend:${{ github.sha }} -f frontend/Dockerfile .
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -41,6 +67,7 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build -t rafaynadeem1203/backend:${{ github.sha }} -f backend/Dockerfile .
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -50,44 +77,22 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push rafaynadeem1203/backend:${{ github.sha }}
+
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
       - name: Build Docker Image
         run: |
           docker build --target test -t app:test -f backend/Dockerfile .
+
       - name: Run Tests and Save Report
         run: |
           docker run --rm -v $(pwd)/backend/test-report.json:/app/test-report.json app:test
 
-
-  lint:
-    name: Lint Code
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Cache Node Modules
-        uses: actions/cache@v3
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-            ${{ runner.os }}-node-modules-
-
-      - name: Install Dependencies
-        run: |
-          cd frontend
-          npm ci
-
-      - name: Run Linter
-        run: |
-          cd frontend
-          npm run lint
   sast:
     name: Static Code Analysis
     runs-on: ubuntu-latest

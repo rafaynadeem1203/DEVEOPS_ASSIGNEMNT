@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --json --outputFile=test-report.json"
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +27,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^2.0.15"
   }
 }

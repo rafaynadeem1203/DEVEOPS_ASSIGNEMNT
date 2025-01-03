@@ -11,6 +11,12 @@ import tracer from 'dd-trace';
 import logger from './logger.js';
 
 
+import StatsD from 'hot-shots';
+
+const dogstatsd = new StatsD({
+  host: process.env.DD_AGENT_HOST || 'localhost',
+  port: 8125,
+});
 tracer.init({
   service: process.env.DD_SERVICE || 'mern-backend', 
   env: process.env.DD_ENV || 'development', 
@@ -86,6 +92,8 @@ app.use((req, res, next) => {
       duration: `${duration}ms`,
       ip: userIp,
     });
+    dogstatsd.increment(`api.requests.count`, 1, [`method:${req.method}`, `endpoint:${req.path}`, `status:${res.statusCode}`]);
+    dogstatsd.timing(`api.requests.duration`, duration, [`method:${req.method}`, `endpoint:${req.path}`, `status:${res.statusCode}`]);
   });
 
   next();
@@ -94,17 +102,37 @@ app.use((req, res, next) => {
 // API Endpoints
 app.get('/api/keys/paypal', (req, res) => {
   res.send(process.env.PAYPAL_CLIENT_ID || 'sb');
+  dogstatsd.increment('api.keys.paypal.hits');
+
 });
 
 app.get('/api/keys/google', (req, res) => {
+  dogstatsd.increment('api.keys.google.hits');
   res.send({ key: process.env.GOOGLE_API_KEY || '' });
+
 });
 
-app.use('/api/upload', uploadRouter);
+app.use('/api/upload', (req, res, next) => {
+  dogstatsd.increment('api.upload.hits'); // Track endpoint hits
+  next();
+}, uploadRouter);
+
 app.use('/api/seed', seedRouter);
-app.use('/api/products', productRouter);
-app.use('/api/users', userRouter); 
-app.use('/api/orders', orderRouter);
+
+app.use('/api/products', (req, res, next) => {
+  dogstatsd.increment('api.products.hits'); // Track endpoint hits
+  next();
+}, productRouter);
+
+app.use('/api/users', (req, res, next) => {
+  dogstatsd.increment('api.users.hits'); // Track endpoint hits
+  next();
+}, userRouter);
+
+app.use('/api/orders', (req, res, next) => {
+  dogstatsd.increment('api.orders.hits'); // Track endpoint hits
+  next();
+}, orderRouter);
 
 // Serve React Frontend
 const __dirname = path.resolve();

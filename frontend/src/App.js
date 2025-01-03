@@ -40,36 +40,22 @@ import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import { datadogRum } from '@datadog/browser-rum';
 import { datadogLogs } from '@datadog/browser-logs';
 
-datadogLogs.init({
-  clientToken: 'pub8300cf66c28d1ee86134a5f773449fc5',
-  applicationId: '5f991c4b-8567-40d8-9290-b1393c74a049',
-  site: 'us5.datadoghq.com',
-  service: 'mern-frontend',
-  env: 'development',
-  forwardErrorsToLogs: true, // Automatically log unhandled errors
-  sampleRate: 100, // Adjust sampling rate
-});
-
-datadogLogs.logger.info('Frontend initialized successfully', { customAttribute: 'value' });
-
-
-
 
 datadogRum.init({
-    applicationId: '5f991c4b-8567-40d8-9290-b1393c74a049',
-    clientToken: 'pub8300cf66c28d1ee86134a5f773449fc5',
-    site: 'us5.datadoghq.com',
-    service: 'mern-frontend',
-    env: 'development',
-    version: '1.0.0',
+  applicationId: '6bf433d2-0e46-411a-9d23-bfee84ed4f3b',
+  clientToken: 'pub2401f66d751cae4e5591c8989637a7aa',
+  site: 'us5.datadoghq.com',
+  service: 'mern',
+  env: 'development',
     sessionSampleRate: 100,
-    sessionReplaySampleRate: 100,
+    sessionReplaySampleRate: 20,
     trackUserInteractions: true,
     trackResources: true,
     trackLongTasks: true,
     defaultPrivacyLevel: 'mask-user-input',
-});
-
+  });
+  
+  datadogLogs.logger.info('Frontend initialized successfully', { customAttribute: 'value' });
 
 
 function App() {
